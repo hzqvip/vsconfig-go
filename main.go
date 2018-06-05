@@ -14,6 +14,7 @@ var (
 	cmdFileName          string
 	workSpaceRoot        string
 	defaultWorkSpaceRoot string
+	isProjectGoPath      bool
 )
 
 func init() {
@@ -26,7 +27,7 @@ func init() {
 	flag.StringVar(&goPath, "gopath", os.Getenv("GOPATH"), "设置项目 gopath")
 	flag.StringVar(&workSpaceRoot, "workSpaceRoot", defaultWorkSpaceRoot, "设置项目根路径")
 	flag.StringVar(&cmdFileName, "cmdFileName", "main.go", "设置启动文件名称")
-
+	flag.BoolVar(&isProjectGoPath, "projectGoPath", false, "设置项目 GOPATH")
 	flag.Parse()
 }
 
@@ -63,11 +64,11 @@ func Vsgoinit() error {
 	if err := touchTasksJSON(vscodePath, cmdFileName, goPath, workSpaceRoot); err != nil {
 		return err
 	}
-
-	if err := touchSettingsJSON(vscodePath, workSpaceRoot); err != nil {
-		return err
+	if isProjectGoPath {
+		if err := touchSettingsJSON(vscodePath, workSpaceRoot); err != nil {
+			return err
+		}
 	}
-
 	return nil
 }
 

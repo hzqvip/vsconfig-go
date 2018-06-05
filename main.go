@@ -60,7 +60,15 @@ func Vsgoinit() error {
 		workSpaceRoot = defaultWorkSpaceRoot
 	}
 
-	return touchTasksJSON(vscodePath, cmdFileName, goPath, workSpaceRoot)
+	if err := touchTasksJSON(vscodePath, cmdFileName, goPath, workSpaceRoot); err != nil {
+		return err
+	}
+
+	if err := touchSettingsJSON(vscodePath, workSpaceRoot); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func touchTasksJSON(path, cmdFileName, gopath, workSpaceRoot string) error {
@@ -113,6 +121,35 @@ func touchTasksJSON(path, cmdFileName, gopath, workSpaceRoot string) error {
 	return nil
 }
 
+func touchSettingsJSON(path, workSpaceRoot string) error {
+	err := mkdirFilePath(path)
+	if err != nil {
+		return err
+	}
+
+	f, err := os.OpenFile(path+"/settings.json", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	content := settingsJSON{
+		Gopath: workSpaceRoot,
+	}
+
+	b, err := json.Marshal(content)
+	if err != nil {
+		return err
+	}
+
+	_, err = f.Write(b)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
 func mkdirFilePath(path string) error {
 	_, err := os.Stat(path)
 	if err != nil {
@@ -143,4 +180,8 @@ type tasks struct {
 type argsAndOpt struct {
 	Args    []string                     `json:"args"`
 	Options map[string]map[string]string `json:"options"`
+}
+
+type settingsJSON struct {
+	Gopath string `json:"go.gopath"`
 }
